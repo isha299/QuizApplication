@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #f9cf46, #fa7b58);
+            /* background: linear-gradient(135deg, #1e3c72, #2a5298); */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            flex-direction: column;
+        }
+
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            padding: 20px;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #700707;
+        }
+
+        .answers button {
+            display: block;
+            width: 100%;
+            background: #02896a;
+            color: #ccc;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .answers button:hover {
+            background: #07644e;
+            transform: scale(1.05);
+        }
+
+        .answers button:active {
+            transform: scale(0.95);
+        }
+
+        .score {
+            font-size: 2em;
+            margin: 20px 0;
+            color: #700707;
+        }
+
+        .timer {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #024882;
+        }
+
+        .restart {
+            display: none;
+            background: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .restart:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .restart:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div id="quiz">
+            <div class="timer" id="timer">Time Left: 05:00</div>
+            <div class="question" id="question">Question text</div>
+            <div class="answers">
+                <button class="answer" data-index="0">Answer 1</button>
+                <button class="answer" data-index="1">Answer 2</button>
+                <button class="answer" data-index="2">Answer 3</button>
+                <button class="answer" data-index="3">Answer 4</button>
+            </div>
+        </div>
+        <div id="score" class="score" style="display: none;">Your Score: 0</div>
+        <button id="restart" class="restart">Restart Quiz</button>
+    </div>
+    <footer>Created with ❤ for learning</footer>
+
+    <script>
+        const quizData = [
+            {
+                question: " What is ReactJS primarily used for?",
+                answers: ["Building databases","Creating user interfaces"," Designing web servers","Developing mobile applications"],
+                correct: 1
+            },
+            {
+                question: "Which of the following is NOT a core principle of React?",
+                answers: ["Virtual DOM", " Component-based architecture", "Two-way data binding", " JSX"],
+                correct: 2
+            },
+            {
+                question: "What is JSX?",
+                answers: [" A JavaScript library;", "  A templating language for React;", "A CSS preprocessor", "A data storage mechanism"],
+                correct: 1
+            },
+            {
+                question: "How do you pass data from a parent component to a child component in React?",
+                answers: ["Using state", " Using props", "Using events", " Using refs"],
+                correct: 1
+            },
+            {
+                question: "What is the purpose of the setState() method in React?",
+                answers: [" To update the component's state", "  To render the component", " To handle user events", " To define component styles"],
+                correct: 0
+            },
+            {
+                question: " What are React Hooks?",
+                answers: ["Functions that let you 'hook into' React state and lifecycle features from function components", " Custom HTML elements", " A way to define reusable UI components", " A tool for debugging React applications"],
+                correct: 0
+            },
+            {
+                question: "Which of the following is NOT a built-in React Hook?",
+                answers: ["useState()", "useEffect()", "useReducer()", " useLoop()"],
+                correct: 3
+            }
+        
+        ];
+
+        const questionEl = document.getElementById('question');
+        const answersEl = document.querySelectorAll('.answer');
+        const scoreEl = document.getElementById('score');
+        const restartBtn = document.getElementById('restart');
+        const timerEl = document.getElementById('timer');
+
+        let currentQuestion = 0;
+        let score = 0;
+        let timeLeft = 300; // 5 minutes in seconds
+        let timer;
+
+        function loadQuestion() {
+            const currentQuiz = quizData[currentQuestion];
+            questionEl.textContent = currentQuiz.question;
+            answersEl.forEach((button, index) => {
+                button.textContent = currentQuiz.answers[index];
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (selectedIndex === quizData[currentQuestion].correct) {
+                score++;
+            }
+
+            currentQuestion++;
+
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        function updateTimer() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                timerEl.textContent = `Time Left: ${minutes}:${seconds}`;
+            } else {
+                endQuiz();
+            }
+        }
+
+        function endQuiz() {
+            clearInterval(timer);
+            document.getElementById('quiz').style.display = 'none';
+            scoreEl.textContent = `Your Score: ${score}`;
+            scoreEl.style.display = 'block';
+            restartBtn.style.display = 'inline-block';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            timeLeft = 300; // Reset the timer to 5 minutes
+            clearInterval(timer); // Clear the existing timer
+            timerEl.textContent = "Time Left: 05:00"; // Reset timer display
+            scoreEl.style.display = 'none';
+            restartBtn.style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            loadQuestion();
+            timer = setInterval(updateTimer, 1000); // Start a new timer
+        }
+
+        answersEl.forEach(button => {
+            button.addEventListener('click', () => {
+                const selectedIndex = parseInt(button.getAttribute('data-index'));
+                checkAnswer(selectedIndex);
+            });
+        });
+
+        restartBtn.addEventListener('click', restartQuiz);
+
+        loadQuestion();
+        timer = setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
